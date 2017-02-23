@@ -25,28 +25,29 @@ class AbstractGenericViewSet:
         },
         'custom': {}
     }
-    base_name: str = ''
-    base_detail_name: str = 'detail'
+    name: str = ''
+    detail_name: str = ''
+    detail_postfix: str = 'detail'
     lookup_url_kwarg: str = '{id}'
 
-    def _get_resource_name(self, base_name: str=None) -> str:
-        if base_name is None:
-            if self.base_name is None:
-                raise RuntimeError('View %s have no base_name.' % str(self.__class__))
+    def _get_resource_name(self, name: str= '') -> str:
+        if not name:
+            if not self.name:
+                raise RuntimeError('View %s have no name.' % str(self.__class__))
             else:
-                base_name = self.base_name
-        return base_name
+                name = self.name
+        return name
 
-    def _get_resource_name_with_postfix(self, base_name: str='', name_postfix: str='') -> str:
-        if base_name is None:
-            base_name = self._get_resource_name()
+    def _get_resource_name_with_postfix(self, name: str= '', name_postfix: str= '') -> str:
+        if name is None:
+            name = self._get_resource_name()
         if name_postfix is None:
-            if self.base_detail_name is None:
-                raise RuntimeError('View %s have no base_detail_name.' % str(self.__class__))
+            if self.detail_postfix is None:
+                raise RuntimeError('View %s have no detail_postfix.' % str(self.__class__))
             else:
-                name_postfix = self.base_detail_name
-        base_name = '_'.join((base_name, name_postfix))
-        return base_name
+                name_postfix = self.detail_postfix
+        name = '_'.join((name, name_postfix))
+        return name
 
     def _build_resource_routes(self, resource, branch: str) -> Resource:
         if branch not in self.bindings:
@@ -60,18 +61,22 @@ class AbstractGenericViewSet:
         return resource
 
     def register_resources(self, dispatcher: UrlDispatcher, path: str,
-                           base_name: str=None, detail_postfix: str=None) -> None:
+                           name: str= '', detail_name: str= '') -> None:
         assert isinstance(dispatcher, UrlDispatcher)
 
         # Register list resource
         if 'list' in self.bindings and self.bindings['list']:
-            name = self._get_resource_name(base_name)
-            list_resource = dispatcher.add_resource(path, name=name)
+            list_name = self._get_resource_name(name)
+            list_resource = dispatcher.add_resource(path, name=list_name)
             self._build_resource_routes(list_resource, 'list')
 
         # Register detail resource
         if 'detail' in self.bindings and self.bindings['detail']:
-            name = self._get_resource_name_with_postfix(base_name, detail_postfix)
-            url = '/'.join((path, self.lookup_url_kwarg))
-            detail_resource = dispatcher.add_resource(url, name=name)
+            if not detail_name:
+                if self.detail_name:
+                    detail_name = self.detail_name
+                else:
+                    detail_name = self._get_resource_name_with_postfix(name)
+            url = '/'.join((path, self.lookup_url_kwarg.lstrip('/')))
+            detail_resource = dispatcher.add_resource(url, name=detail_name)
             self._build_resource_routes(detail_resource, 'detail')
