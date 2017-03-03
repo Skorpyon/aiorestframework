@@ -10,10 +10,12 @@ __all__ = (
 
 
 class APIApplication(Application):
-    def __init__(self, *, logger=web_logger, loop=None, router: APIUrlDispatcher=None,
-                 middlewares=(), debug=...):
+    def __init__(self, *, name='', logger=web_logger, loop=None,
+                 router: APIUrlDispatcher=None, middlewares=(), debug=...):
+        self.name = name
         if router is None:
             router = APIUrlDispatcher()
         assert isinstance(router, APIUrlDispatcher), router
-        super().__init__(
-            logger=logger, loop=loop, router=router, middlewares=middlewares, debug=debug)
+        setattr(router, 'app_name', name)
+        super().__init__(logger=logger, loop=loop, router=router,
+                         middlewares=middlewares, debug=debug)
