@@ -45,25 +45,30 @@ class AbstractGenericViewSet:
     def _get_wrapped_handler(self, func, action):
         @functools.wraps(func)
         async def wrapper(request):
-            result = await func(request, action)
+            request['rest'] = {}
+            request['rest']['action'] = action
+            result = await func(request)
             return result
         return wrapper
 
     def _get_resource_name(self, name: str= '') -> str:
         if not name:
             if not self.name:
-                raise RuntimeError('View %s have no name.' % str(self.__class__))
+                raise RuntimeError(
+                    'View %s have no name.' % str(self.__class__))
             else:
                 name = self.name
         if self.app_name:
             name = '.'.join((self.app_name, name))
         return name
 
-    def _get_resource_name_with_postfix(self, name: str= '', name_postfix: str= '') -> str:
+    def _get_resource_name_with_postfix(self, name: str= '',
+                                        name_postfix: str= '') -> str:
         name = self._get_resource_name(name=name)
         if not name_postfix:
             if self.detail_postfix is None:
-                raise RuntimeError('View %s have no detail_postfix.' % str(self.__class__))
+                raise RuntimeError(
+                    'View %s have no detail_postfix.' % str(self.__class__))
             else:
                 name_postfix = self.detail_postfix
         name = '.'.join((name, name_postfix))
@@ -71,7 +76,8 @@ class AbstractGenericViewSet:
 
     def _build_resource_routes(self, resource, branch: str) -> Resource:
         if branch not in self.bindings:
-            raise NotImplementedError('%s views not implemented in %s' % (branch, self.__class__))
+            raise NotImplementedError(
+                '%s views not implemented in %s' % (branch, self.__class__))
         for m in hdrs.METH_ALL:
             m = m.lower()
             if m in self.bindings[branch]:

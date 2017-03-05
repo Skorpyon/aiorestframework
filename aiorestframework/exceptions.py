@@ -42,7 +42,8 @@ class MethodNotAllowed(APIError):
     default_detail = 'Method "{method}" not allowed.'
     default_code = 'method_not_allowed'
 
-    def __init__(self, method, allowed_methods, detail=None, code: int=None, headers=None):
+    def __init__(self, method, allowed_methods, detail=None, code: int=None,
+                 headers=None):
         if detail is None:
             detail = self.get_detail(method=method)
         if headers is None or isinstance(headers, dict) and 'Allow' not in headers:
