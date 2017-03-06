@@ -1,7 +1,7 @@
 from typing import Iterable, Dict
 
 import ujson
-from aiohttp import errors
+from aiohttp import web_exceptions
 
 from aiorestframework import status
 
@@ -15,25 +15,26 @@ class SkipField(Exception):
     pass
 
 
-class APIError(errors.HttpProcessingError):
+class APIError(web_exceptions.HTTPError):
     """Basic API Error"""
 
-    default_http_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     default_detail = 'A server error occurred.'
     default_api_code = 'error'
     default_headers = None
 
-    def __init__(self, *, detail=None, api_code=None, code=None, headers=None):
+    def __init__(self, *, detail=None, api_code=None, status_code=None,
+                 headers=None):
         self.detail = self.get_detail(detail=detail)
         self.api_code = self.default_api_code if api_code is None else api_code
 
-        if code is None:
-            code = self.default_http_code
+        if status_code is not None:
+            self.status_code = status_code
         if headers is None:
             headers = self.default_headers
 
         message = self.get_message()
-        super().__init__(code=code, message=message, headers=headers)
+        super().__init__(text=ujson.dumps(message), headers=headers)
 
     def get_detail(self, *, detail, **kwargs):
         if detail is not None:
@@ -54,12 +55,12 @@ class APIError(errors.HttpProcessingError):
 class MethodNotAllowed(APIError):
     """Method not allowed error"""
 
-    default_http_code = status.HTTP_405_METHOD_NOT_ALLOWED
+    status_code = status.HTTP_405_METHOD_NOT_ALLOWED
     default_detail = 'Method "{method}" not allowed.'
     default_api_code = 'method_not_allowed'
 
     def __init__(self, method, allowed_methods, detail=None, api_code=None,
-                 code=None, headers=None):
+                 status_code=None, headers=None):
         self.detail = self.get_detail(detail, method=method)
         if headers is None or isinstance(headers, dict)\
                 and 'Allow' not in headers:
@@ -69,8 +70,8 @@ class MethodNotAllowed(APIError):
             else:
                 headers.update(allow)
 
-        super().__init__(detail=detail, api_code=api_code, code=code,
-                         headers=headers)
+        super().__init__(detail=detail, api_code=api_code,
+                         status_code=status_code, headers=headers)
 
     def get_detail(self, detail, method, **kwargs):
         if detail is not None:
@@ -82,6 +83,6 @@ class MethodNotAllowed(APIError):
 class ValidationError(APIError):
     """ Validation Error"""
 
-    default_http_code = status.HTTP_400_BAD_REQUEST
+    status_code = status.HTTP_400_BAD_REQUEST
     default_detail = "Bad request."
     default_api_code = 'invalid'
