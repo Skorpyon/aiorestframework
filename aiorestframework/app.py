@@ -11,7 +11,7 @@ __all__ = (
 
 class APIApplication(Application):
     def __init__(self, *, name='', logger=web_logger, loop=None,
-                 router: APIUrlDispatcher=None, middlewares=(), debug=...):
+                 router=None, middlewares=(), debug=...):
         self.name = name
         if router is None:
             router = APIUrlDispatcher()

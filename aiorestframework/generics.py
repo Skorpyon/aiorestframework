@@ -11,17 +11,18 @@ __all__ = (
     'AbstractGenericViewSet',
 )
 
-BASE_BINDINGS: dict = {
+BASE_BINDINGS = {
     'list': {
-        'get': 'list',
-        'post': 'create',
-        'delete': 'destroy_all'
+        'list': 'get',
+        'create': 'post',
+        'destroy_all': 'delete'
     },
     'detail': {
-        'get': 'retrieve',
-        'put': 'update',
-        'patch': 'partial_update',
-        'delete': 'destroy'
+        'retrieve': 'get',
+        'update': 'put',
+        'partial': 'put',
+        'partial_update': 'patch',
+        'destroy': 'delete'
     },
     'custom': {}
 }
@@ -29,15 +30,15 @@ BASE_BINDINGS: dict = {
 
 class AbstractGenericViewSet:
 
-    bindings: dict = BASE_BINDINGS
-    bindings_update: dict = {}
-    app_name: str = ''
-    name: str = ''
-    detail_name: str = ''
-    detail_postfix: str = 'detail'
-    lookup_url_kwarg: str = '{id}'
+    bindings = BASE_BINDINGS
+    bindings_update = {}
+    app_name = ''
+    name = ''
+    detail_name = ''
+    detail_postfix = 'detail'
+    lookup_url_kwarg = '{id}'
 
-    def __init__(self) -> None:
+    def __init__(self):
         if self.bindings_update:
             assert isinstance(self.bindings_update, dict)
             self.bindings.update(self.bindings_update)
@@ -51,7 +52,7 @@ class AbstractGenericViewSet:
             return result
         return wrapper
 
-    def _get_resource_name(self, name: str= '') -> str:
+    def _get_resource_name(self, name=''):
         if not name:
             if not self.name:
                 raise RuntimeError(
@@ -62,8 +63,7 @@ class AbstractGenericViewSet:
             name = '.'.join((self.app_name, name))
         return name
 
-    def _get_resource_name_with_postfix(self, name: str= '',
-                                        name_postfix: str= '') -> str:
+    def _get_resource_name_with_postfix(self, name='', name_postfix=''):
         name = self._get_resource_name(name=name)
         if not name_postfix:
             if self.detail_postfix is None:
@@ -74,22 +74,35 @@ class AbstractGenericViewSet:
         name = '.'.join((name, name_postfix))
         return name
 
-    def _build_resource_routes(self, resource, branch: str) -> Resource:
+    def _build_methods_list(self, declared):
+        if isinstance(declared, str):
+            declared = declared.upper()
+            methods = [declared, ] if declared in hdrs.METH_ALL else []
+        elif isinstance(declared, list):
+            methods = [m.upper() for m in declared if m.upper() in hdrs.METH_ALL]
+        else:
+            raise ValueError(
+                'Methods should be a str or list, got {} instead.'.format(
+                    declared.__type__()))
+
+        return methods
+
+    def _build_resource_routes(self, resource, branch):
         if branch not in self.bindings:
             raise NotImplementedError(
                 '%s views not implemented in %s' % (branch, self.__class__))
-        for m in hdrs.METH_ALL:
-            m = m.lower()
-            if m in self.bindings[branch]:
-                handler = getattr(self, self.bindings[branch][m], None)
-                action = self.bindings[branch][m]
-                if handler is not None and callable(handler):
+        for action in self.bindings[branch]:
+            handler = getattr(self, action, None)
+            if handler is not None:
+                declared_methods = self.bindings[branch][action]
+                methods = self._build_methods_list(declared_methods)
+                for m in methods:
                     wrapped_handler = self._get_wrapped_handler(handler, action)
                     resource.add_route(m, wrapped_handler)
+
         return resource
 
-    def register_resources(self, dispatcher: UrlDispatcher, path: str,
-                           name: str= '', detail_name: str= '') -> None:
+    def register_resources(self, dispatcher, path, name='', detail_name=''):
         assert isinstance(dispatcher, UrlDispatcher)
 
         # Save Application name
