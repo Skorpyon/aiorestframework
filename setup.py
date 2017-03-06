@@ -42,6 +42,7 @@ setup(
     ],
     zip_safe=True,
     install_requires=[
+        'ujson==1.35',
         'aiohttp==1.3.3',
         'trafaret>=0.7.5',
         'trafaret_config>=1.0.1',
