@@ -87,3 +87,21 @@ class ValidationError(APIError):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = "Bad request."
     default_api_code = 'invalid'
+
+
+class AuthenticationFailed(APIError):
+    status_code = status.HTTP_401_UNAUTHORIZED
+    default_detail = 'Incorrect authentication credentials.'
+    default_api_code = 'authentication_failed'
+
+
+class NotAuthenticated(APIError):
+    status_code = status.HTTP_401_UNAUTHORIZED
+    default_detail = 'Authentication credentials were not provided.'
+    default_api_code = 'not_authenticated'
+
+
+class PermissionDenied(APIError):
+    status_code = status.HTTP_403_FORBIDDEN
+    default_detail = 'You do not have permission to perform this action.'
+    default_api_code = 'permission_denied'
