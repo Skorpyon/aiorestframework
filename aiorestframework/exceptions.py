@@ -34,7 +34,8 @@ class APIError(web_exceptions.HTTPError):
             headers = self.default_headers
 
         message = self.get_message()
-        super().__init__(text=ujson.dumps(message), headers=headers)
+        super().__init__(text=ujson.dumps(message), headers=headers,
+                         content_type='application/json')
 
     def get_detail(self, *, detail, **kwargs):
         if detail is not None:

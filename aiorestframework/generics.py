@@ -52,6 +52,23 @@ class AbstractGenericViewSet:
             return result
         return wrapper
 
+    def _get_detail_name(self, name, detail_name):
+        if not detail_name:
+            if self.detail_name:
+                detail_name = self.detail_name
+            else:
+                detail_name = self._get_resource_name_with_postfix(name)
+        return detail_name
+
+    def _get_detail_postfix(self, postfix=''):
+        if not postfix:
+            if self.detail_postfix is None:
+                raise RuntimeError(
+                    'View %s have no detail_postfix.' % str(self.__class__))
+            else:
+                postfix = self.detail_postfix
+        return postfix
+
     def _get_resource_name(self, name=''):
         if not name:
             if not self.name:
@@ -63,15 +80,10 @@ class AbstractGenericViewSet:
             name = '.'.join((self.app_name, name))
         return name
 
-    def _get_resource_name_with_postfix(self, name='', name_postfix=''):
+    def _get_resource_name_with_postfix(self, name='', postfix=''):
         name = self._get_resource_name(name=name)
-        if not name_postfix:
-            if self.detail_postfix is None:
-                raise RuntimeError(
-                    'View %s have no detail_postfix.' % str(self.__class__))
-            else:
-                name_postfix = self.detail_postfix
-        name = '.'.join((name, name_postfix))
+        postfix = self._get_detail_postfix(postfix)
+        name = '.'.join((name, postfix))
         return name
 
     def _build_methods_list(self, declared):
@@ -88,13 +100,9 @@ class AbstractGenericViewSet:
         return methods
 
     def _build_resource_routes(self, resource, branch):
-        if branch not in self.bindings:
-            raise NotImplementedError(
-                '%s views not implemented in %s' % (branch, self.__class__))
-        for action in self.bindings[branch]:
+        for action, declared_methods in branch.items():
             handler = getattr(self, action, None)
             if handler is not None:
-                declared_methods = self.bindings[branch][action]
                 methods = self._build_methods_list(declared_methods)
                 for m in methods:
                     wrapped_handler = self._get_wrapped_handler(handler, action)
@@ -110,18 +118,40 @@ class AbstractGenericViewSet:
             self.app_name = dispatcher.app_name
 
         # Register list resource
-        if 'list' in self.bindings and self.bindings['list']:
+        branch = self.bindings.get('list', None)
+        if branch:
             list_name = self._get_resource_name(name)
             list_resource = dispatcher.add_resource(path, name=list_name)
-            self._build_resource_routes(list_resource, 'list')
+            self._build_resource_routes(list_resource, branch)
 
         # Register detail resource
-        if 'detail' in self.bindings and self.bindings['detail']:
-            if not detail_name:
-                if self.detail_name:
-                    detail_name = self.detail_name
-                else:
-                    detail_name = self._get_resource_name_with_postfix(name)
+        branch = self.bindings.get('detail', None)
+        if branch:
+            detail_name = self._get_detail_name(name, detail_name)
             url = '/'.join((path, self.lookup_url_kwarg.lstrip('/')))
             detail_resource = dispatcher.add_resource(url, name=detail_name)
-            self._build_resource_routes(detail_resource, 'detail')
+            self._build_resource_routes(detail_resource, branch)
+
+        # Register custom resources
+        custom = self.bindings.get('custom', None)
+        if custom:
+            # Register custom list resources
+            custom_list = custom.get('list', None)
+            if custom_list:
+                for action, methods in custom_list.items():
+                    list_name = self._get_resource_name_with_postfix(name, action)
+                    url = '/'.join((path, action))
+                    list_resource = dispatcher.add_resource(url, name=list_name)
+                    branch = {action: methods}
+                    self._build_resource_routes(list_resource, branch)
+            # Register custom detail resources
+            custom_detail = custom.get('detail', None)
+            if custom_detail:
+                for action, methods in custom_detail.items():
+                    detail_name = self._get_detail_name(name, detail_name)
+                    detail_name = self._get_resource_name_with_postfix(
+                        name=detail_name, postfix=action)
+                    url = '/'.join((path, self.lookup_url_kwarg.lstrip('/')), action)
+                    detail_resource = dispatcher.add_resource(url, name=detail_name)
+                    branch = {action: methods}
+                    self._build_resource_routes(detail_resource, branch)

@@ -7,10 +7,7 @@ from aiorestframework.utils import html, representation
 from aiorestframework.utils.functional import cached_property
 from .exceptions import SkipField, ValidationError
 
-from .fields import (  # NOQA # isort:skip
-    empty, set_value, Field, BooleanField, NullBooleanField, CharField,
-    EmailField
-)
+from .fields import *
 
 from .serializer_helpers import (
     BindingDict, BoundField, NestedBoundField, ReturnDict, ReturnList
@@ -27,7 +24,7 @@ LIST_SERIALIZER_KWARGS = (
 
 ALL_FIELDS = '__all__'
 
-NON_FIELD_ERRORS_KEY = 'non_field_errors'
+NON_FIELD_ERRORS_KEY = 'non_field_errors'  # TODO Move to settings
 
 
 # BaseSerializer
