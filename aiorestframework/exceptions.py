@@ -89,6 +89,12 @@ class ValidationError(APIError):
     default_api_code = 'invalid'
 
 
+class ParseError(APIError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = 'Malformed request.'
+    default_api_code = 'parse_error'
+
+
 class AuthenticationFailed(APIError):
     status_code = status.HTTP_401_UNAUTHORIZED
     default_detail = 'Incorrect authentication credentials.'
