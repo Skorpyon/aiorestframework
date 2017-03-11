@@ -12,6 +12,7 @@ package = THIS_DIR.joinpath('aiorestframework')
 
 start_package_data = []
 
+
 setup(
     name='aiorestframework',
     version=str(version.VERSION),
@@ -37,7 +38,8 @@ setup(
     author_email='anton.trishenkov@gmail.com',
     url='',  # FIXME: set project repository
     license='MIT',
-    packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+    packages=find_packages(exclude=['contrib', 'docs', 'tests']) + ['static'],
+    include_package_data=True,
     zip_safe=True,
     install_requires=[
         'ujson==1.35',
