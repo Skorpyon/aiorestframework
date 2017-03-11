@@ -1,6 +1,6 @@
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
-from setuptools import setup
+from setuptools import setup, find_packages
 
 THIS_DIR = Path(__file__).resolve().parent
 long_description = THIS_DIR.joinpath('README.rst').read_text()
@@ -37,9 +37,7 @@ setup(
     author_email='anton.trishenkov@gmail.com',
     url='',  # FIXME: set project repository
     license='MIT',
-    packages=[
-        'aiorestframework',
-    ],
+    packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     zip_safe=True,
     install_requires=[
         'ujson==1.35',
