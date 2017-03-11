@@ -38,7 +38,7 @@ setup(
     author_email='anton.trishenkov@gmail.com',
     url='',  # FIXME: set project repository
     license='MIT',
-    packages=find_packages(exclude=['contrib', 'docs', 'tests']) + ['static'],
+    packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     include_package_data=True,
     zip_safe=True,
     install_requires=[
