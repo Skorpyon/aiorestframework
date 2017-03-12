@@ -10,7 +10,7 @@ __all__ = (
 SAFE_METHODS = (METH_GET, METH_HEAD, METH_OPTIONS)
 
 
-def set_permissions(permissions=[], include_viewset_permissions=True):
+def set_permissions(permissions, include_viewset_permissions=False):
     """
     Add permissions classes to handler
 
@@ -20,8 +20,10 @@ def set_permissions(permissions=[], include_viewset_permissions=True):
     :return: wrapped handler with .permission_classes attribute
     """
     def wrapper(handler):
+        assert isinstance(permissions, (tuple, list, set)),\
+            'Permissions should be a iterable of Permissions.'
         _permission_classes = []
-        for permission in permissions:
+        for permission in set(permissions):
             assert issubclass(permission, BasePermission), \
                 'Permission class should be inherited from "BasePermission".'
             _permission_classes.append(permission)

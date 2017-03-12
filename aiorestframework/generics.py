@@ -1,8 +1,7 @@
 from functools import wraps
 
 from aiohttp import hdrs
-from aiohttp.web import Application
-from aiohttp.web_urldispatcher import UrlDispatcher, Resource
+from aiohttp.web_urldispatcher import UrlDispatcher
 
 from aiorestframework import exceptions
 from aiorestframework.permissions import BasePermission
