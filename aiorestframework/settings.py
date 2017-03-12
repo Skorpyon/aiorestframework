@@ -21,6 +21,7 @@ from importlib import import_module
 
 from aiorestframework import ISO_8601
 
+
 DEFAULTS = {
     # Base API policies
     'DEFAULT_RENDERER_CLASSES': (
@@ -36,8 +37,9 @@ DEFAULTS = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication'
     ),
+    'ENABLE_PERMISSIONS_CHECK': True,
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
+        'aiorestframework.permissions.AllowAny',
     ),
     'DEFAULT_THROTTLE_CLASSES': (),
     'DEFAULT_CONTENT_NEGOTIATION_CLASS': 'rest_framework.negotiation.DefaultContentNegotiation',
