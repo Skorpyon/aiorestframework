@@ -1,16 +1,33 @@
 from aiohttp import Response
 
-from .generics import AbstractGenericViewSet
+from .generics import GenericViewSet
 
 
 __all__ = (
-    'GenericViewSet', 'ListMixin', 'CreateMixin', 'RetrieveMixin',
+    'BaseViewSet', 'ListMixin', 'CreateMixin', 'RetrieveMixin',
     'UpdateMixin', 'PartialUpdateMixin', 'DestroyMixin'
 )
 
 
-class GenericViewSet(AbstractGenericViewSet):
-    pass
+BASE_BINDINGS = {
+    'list': {
+        'list': 'get',
+        'create': 'post',
+        'destroy_all': 'delete'
+    },
+    'detail': {
+        'retrieve': 'get',
+        'update': 'put',
+        'partial': 'put',
+        'partial_update': 'patch',
+        'destroy': 'delete'
+    },
+    'custom': {}
+}
+
+
+class BaseViewSet(GenericViewSet):
+    bindings = BASE_BINDINGS
 
 
 class ListMixin:

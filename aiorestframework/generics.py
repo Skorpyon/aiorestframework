@@ -9,30 +9,13 @@ from aiorestframework.settings import api_settings
 
 
 __all__ = (
-    'AbstractGenericViewSet',
+    'GenericViewSet',
 )
 
 
-BASE_BINDINGS = {
-    'list': {
-        'list': 'get',
-        'create': 'post',
-        'destroy_all': 'delete'
-    },
-    'detail': {
-        'retrieve': 'get',
-        'update': 'put',
-        'partial': 'put',
-        'partial_update': 'patch',
-        'destroy': 'delete'
-    },
-    'custom': {}
-}
+class GenericViewSet:
 
-
-class AbstractGenericViewSet:
-
-    bindings = BASE_BINDINGS
+    bindings = {}
     app_name = ''
     name = ''
     detail_name = ''
