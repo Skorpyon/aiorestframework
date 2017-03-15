@@ -1,3 +1,5 @@
+import copy
+from inspect import isclass
 from functools import wraps
 
 from aiohttp import hdrs
@@ -23,17 +25,20 @@ class GenericViewSet:
     lookup_url_kwarg = '{id}'
     permission_classes = []
 
-    def __init__(self):
-        if hasattr(self, 'bindings_update'):
+    def __new__(cls, *args, **kwargs):
+        obj = super().__new__(cls)
+        obj.bindings = copy.deepcopy(cls.bindings)
+        if hasattr(cls, 'bindings_update'):
             # Update methods bindings if ViewSet have it.
-            assert isinstance(self.bindings_update, dict)
-            self.bindings.update(self.bindings_update)
+            assert isinstance(cls.bindings_update, dict)
+            obj.bindings.update(cls.bindings_update)
         # Build permissions list
-        self._permission_classes = []
-        for permission in self.permission_classes:
+        obj._permission_classes = []
+        for permission in cls.permission_classes:
             assert issubclass(permission, BasePermission), \
                 'Permission class should be inherited from "BasePermission".'
-            self._permission_classes.append(permission)
+            obj._permission_classes.append(permission)
+        return obj
 
     def _get_handler(self, handler, action,
                      is_list_action=False, is_detail_action=False):
@@ -259,8 +264,8 @@ class GenericViewSet:
         # Register detail resource
         branch = self.bindings.get('detail', None)
         if branch:
-            detail_name = self._get_detail_name(name, detail_name)
             url = '/'.join((path, self.lookup_url_kwarg.lstrip('/')))
+            detail_name = self._get_detail_name(name, detail_name)
             detail_resource = dispatcher.add_resource(url, name=detail_name)
             self._build_resource_routes(
                 detail_resource, branch, is_detail_action=True)
@@ -274,22 +279,47 @@ class GenericViewSet:
             if custom_list:
                 assert isinstance(custom_list, dict)
                 for action, methods in custom_list.items():
-                    list_name = self._get_resource_name_with_postfix(name, action)
                     url = '/'.join((path, action))
-                    list_resource = dispatcher.add_resource(url, name=list_name)
-                    branch = {action: methods}
-                    self._build_resource_routes(
-                        list_resource, branch, is_list_action=True)
+                    # Build nested routes if `methods` is nested ViewSet.
+                    assert not isinstance(methods, GenericViewSet), \
+                        'Passing nested ViewSet instance instead class.'
+                    if isclass(methods) and issubclass(methods, GenericViewSet):
+                        nested = methods()
+                        nested_name = '.'.join((
+                            self._get_resource_name(name), nested.name))
+                        nested.register_resources(
+                            dispatcher, url, nested_name)
+                    else:
+                        list_name = self._get_resource_name_with_postfix(
+                            name, action)
+                        list_resource = dispatcher.add_resource(
+                            url, name=list_name)
+                        branch = {action: methods}
+                        self._build_resource_routes(
+                            list_resource, branch, is_list_action=True)
             # Register custom detail resources
             custom_detail = custom.get('detail', None)
             if custom_detail:
                 assert isinstance(custom_detail, dict)
                 for action, methods in custom_detail.items():
-                    detail_name = self._get_detail_name(name, detail_name)
-                    detail_name = self._get_resource_name_with_postfix(
-                        name=detail_name, postfix=action)
-                    url = '/'.join((path, self.lookup_url_kwarg.lstrip('/')), action)
-                    detail_resource = dispatcher.add_resource(url, name=detail_name)
-                    branch = {action: methods}
-                    self._build_resource_routes\
-                        (detail_resource, branch, is_detail_action=True)
+                    url = '/'.join(
+                        (path, self.lookup_url_kwarg.lstrip('/'), action))
+                    # Build nested routes if `methods` is nested ViewSet.
+                    assert not isinstance(methods, GenericViewSet), \
+                        'Passing nested ViewSet instance instead class.'
+                    if isclass(methods) and issubclass(methods, GenericViewSet):
+                        nested = methods()
+                        nested_name = '.'.join((
+                            self._get_detail_name(
+                                name, detail_name), nested.name))
+                        nested.register_resources(
+                            dispatcher, url, nested_name)
+                    else:
+                        detail_name = self._get_detail_name(name, detail_name)
+                        detail_name = self._get_resource_name_with_postfix(
+                            name=detail_name, postfix=action)
+                        detail_resource = dispatcher.add_resource(
+                            url, name=detail_name)
+                        branch = {action: methods}
+                        self._build_resource_routes(
+                            detail_resource, branch, is_detail_action=True)
