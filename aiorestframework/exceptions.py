@@ -7,7 +7,9 @@ from aiorestframework import status
 
 
 __all__ = (
-    'SkipField', 'APIError', 'MethodNotAllowed', 'ValidationError'
+    'SkipField', 'APIError', 'MethodNotAllowed', 'ValidationError',
+    'ParseError', 'AuthenticationFailed', 'NotAuthenticated',
+    'PermissionDenied', 'NotFound'
 )
 
 
@@ -111,3 +113,9 @@ class PermissionDenied(APIError):
     status_code = status.HTTP_403_FORBIDDEN
     default_detail = 'You do not have permission to perform this action.'
     default_api_code = 'permission_denied'
+
+
+class NotFound(APIError):
+    status_code = status.HTTP_404_NOT_FOUND
+    default_detail = 'Not found.'
+    default_api_code = 'not_found'
