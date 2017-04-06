@@ -108,6 +108,7 @@ DEFAULTS = {
     'TIME_INPUT_FORMATS': (ISO_8601,),
 
     # Encoding
+    'DEFAULT_CHARSET': 'utf-8',
     'UNICODE_JSON': True,
     'COMPACT_JSON': True,
     'COERCE_DECIMAL_TO_STRING': True,
