@@ -11,7 +11,11 @@ class Response(AiohttpResponse):
                  reason=None, text=None, headers=None, content_type=None,
                  charset=None):
         content_type = 'application/json' if content_type is None else content_type
-        text = json.dumps(data) if (data and not body and not text) else text
+        if data is not None and not body and not text:
+            text = json.dumps(data)
+        else:
+            text = text
+
         super().__init__(body=body, status=status, reason=reason, text=text,
                          headers=headers, content_type=content_type,
                          charset=charset)
