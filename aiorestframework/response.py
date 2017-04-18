@@ -10,7 +10,8 @@ class Response(AiohttpResponse):
     def __init__(self, *, data=None, status=200, body=None,
                  reason=None, text=None, headers=None, content_type=None,
                  charset=None):
-        content_type = 'application/json' if content_type is None else content_type
+        if content_type is None and data is not None:
+            content_type = 'application/json'
         if data is not None and not body and not text:
             text = json.dumps(data)
         else:
