@@ -23,7 +23,7 @@ def set_permissions(permissions, include_viewset_permissions=False):
         assert isinstance(permissions, (tuple, list, set)),\
             'Permissions should be a iterable of Permissions.'
         _permission_classes = []
-        for permission in set(permissions):
+        for permission in permissions:
             assert issubclass(permission, BasePermission), \
                 'Permission class should be inherited from "BasePermission".'
             _permission_classes.append(permission)
