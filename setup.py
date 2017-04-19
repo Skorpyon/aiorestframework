@@ -28,15 +28,12 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Intended Audience :: Information Technology',
         'Intended Audience :: Telecommunications Industry',
-        'License :: Other/Proprietary License',
+        'License :: MIT',
         'Operating System :: POSIX :: Linux',
-        'Topic :: Communications :: Internet Phone',
-        'Topic :: Communications :: Telephony',
-        'Topic :: Office/Business'
     ],
     author='Anton Trishenkov',
     author_email='anton.trishenkov@gmail.com',
-    url='',  # FIXME: set project repository
+    url='https://github.com/Skorpyon/aiorestframework',
     license='MIT',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     include_package_data=True,

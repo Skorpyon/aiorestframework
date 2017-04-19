@@ -1,4 +1,3 @@
-from aiohttp import Response
 
 from .generics import GenericViewSet
 
