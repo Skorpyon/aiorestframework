@@ -1313,7 +1313,7 @@ class FileField(Field):
         'no_name': 'No filename could be determined.',
         'empty': 'The submitted file is empty.',
         'max_length': 'Ensure this filename has at most {max_length} characters (it has {length}).',
-        'wrong_type': 'File "{content_type}" type is not allow.'
+        'wrong_type': 'File "{content_type}" type is not allow. Allowed types is "{required_type}"'
     }
 
     def __init__(self, *args, **kwargs):
@@ -1343,7 +1343,8 @@ class FileField(Field):
         if self.required_type:
             if isinstance(self.required_type, str):
                 if content_type != self.required_type:
-                    self.fail('wrong_type', content_type=content_type)
+                    self.fail('wrong_type', content_type=content_type,
+                              required_type=self.required_type)
 
         return data
 
