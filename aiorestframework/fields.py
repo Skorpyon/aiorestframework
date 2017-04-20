@@ -1345,7 +1345,7 @@ class FileField(Field):
             return None
 
         def build_absolute_uri(name):
-            return '/static/{}'.format(name)
+            return name
 
         return build_absolute_uri(value)
 
