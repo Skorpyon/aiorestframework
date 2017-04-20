@@ -1313,11 +1313,13 @@ class FileField(Field):
         'no_name': 'No filename could be determined.',
         'empty': 'The submitted file is empty.',
         'max_length': 'Ensure this filename has at most {max_length} characters (it has {length}).',
+        'wrong_type': 'File "{content_type}" is not allow.'
     }
 
     def __init__(self, *args, **kwargs):
         self.max_length = kwargs.pop('max_length', None)
         self.allow_empty_file = kwargs.pop('allow_empty_file', False)
+        self.required_type = kwargs.pop('required_type', None)
         if 'use_url' in kwargs:
             self.use_url = kwargs.pop('use_url')
         super(FileField, self).__init__(*args, **kwargs)
@@ -1328,6 +1330,7 @@ class FileField(Field):
             file_name = data.filename
             content = data.file.read()
             file_size = len(content)
+            content_type = data.content_type
         except AttributeError:
             self.fail('invalid')
 
@@ -1337,6 +1340,10 @@ class FileField(Field):
             self.fail('empty')
         if self.max_length and len(file_name) > self.max_length:
             self.fail('max_length', max_length=self.max_length, length=len(file_name))
+        if self.required_type:
+            if isinstance(self.required_type, str):
+                if content_type != self.required_type:
+                    self.fail('wrong_type', content_type=content_type)
 
         return data
 
