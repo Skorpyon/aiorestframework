@@ -1141,11 +1141,13 @@ class TimeField(Field):
     }
     datetime_parser = datetime.datetime.strptime
 
-    def __init__(self, format=empty, input_formats=None, *args, **kwargs):
+    def __init__(self, format=empty, input_formats=None, check_tz=False,
+                 *args, **kwargs):
         if format is not empty:
             self.format = format
         if input_formats is not None:
             self.input_formats = input_formats
+        self.check_tz = check_tz
         super(TimeField, self).__init__(*args, **kwargs)
 
     def to_internal_value(self, value):
@@ -1157,7 +1159,10 @@ class TimeField(Field):
         for input_format in input_formats:
             if input_format.lower() == ISO_8601:
                 try:
-                    parsed = dateparse.parse_time(value)
+                    if self.check_tz is True:
+                        parsed = dateparse.parse_time_with_tz(value)
+                    else:
+                        parsed = dateparse.parse_time(value)
                 except (ValueError, TypeError):
                     pass
                 else:
