@@ -1346,11 +1346,18 @@ class FileField(Field):
         if self.max_length and len(file_name) > self.max_length:
             self.fail('max_length', max_length=self.max_length, length=len(file_name))
         if self.required_type:
+            match = False
             if isinstance(self.required_type, str):
-                if content_type != self.required_type:
-                    self.fail('wrong_type', content_type=content_type,
-                              required_type=self.required_type)
-
+                if content_type == self.required_type:
+                    match = True
+            elif isinstance(self.required_type, list):
+                for type_record in self.required_type:
+                    if content_type == type_record:
+                        match = True
+                        break
+            if match is False:
+                self.fail('wrong_type', content_type=content_type,
+                          required_type=self.required_type)
         return data
 
     def to_representation(self, value):
