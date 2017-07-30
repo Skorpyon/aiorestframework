@@ -77,13 +77,15 @@ class GenericViewSet:
                         request, handler, self)
                     if not has_permission:
                         await self.permission_denied(
-                            request, message=getattr(permission, 'message', None))
+                            request,
+                            message=getattr(permission, 'message', None),
+                            api_code=getattr(permission, 'api_code', None))
             result = await handler(request)
             return result
         return wrapper
 
-    async def permission_denied(self, request, message):
-        raise exceptions.PermissionDenied(detail=message)
+    async def permission_denied(self, request, message, api_code):
+        raise exceptions.PermissionDenied(detail=message, api_code=api_code)
 
     def set_handler_permissions(self, handler):
         """
